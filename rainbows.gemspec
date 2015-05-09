@@ -1,6 +1,6 @@
 # -*- encoding: binary -*-
-ENV["VERSION"] or abort "VERSION= must be specified"
-manifest = File.readlines('.manifest').map! { |x| x.chomp! }
+ENV["VERSION"] ||= File.read(File.expand_path('../VERSION', __FILE__))
+manifest = File.readlines(File.expand_path('../.manifest', __FILE__)).map! { |x| x.chomp! }
 require 'olddoc'
 extend Olddoc::Gemspec
 name, summary, title = readme_metadata
