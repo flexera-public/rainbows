@@ -1,6 +1,5 @@
 # -*- encoding: binary -*-
 ENV["VERSION"] ||= File.read(File.expand_path('../VERSION', __FILE__))
-manifest = File.readlines(File.expand_path('../.manifest', __FILE__)).map! { |x| x.chomp! }
 require 'olddoc'
 extend Olddoc::Gemspec
 name, summary, title = readme_metadata
@@ -14,7 +13,7 @@ Gem::Specification.new do |s|
   s.email = %q{rainbows-public@bogomips.org}
   s.executables = %w(rainbows)
   s.extra_rdoc_files = extra_rdoc_files(manifest)
-  s.files = manifest
+  s.files = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(archive|examples|t|Documentation)/}) }
   s.homepage = Olddoc.config['rdoc_url']
   s.summary = summary
 
