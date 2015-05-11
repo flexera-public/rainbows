@@ -1,24 +1,19 @@
 # -*- encoding: binary -*-
-ENV["VERSION"] or abort "VERSION= must be specified"
-manifest = File.readlines('.manifest').map! { |x| x.chomp! }
-require 'wrongdoc'
-extend Wrongdoc::Gemspec
-name, summary, title = readme_metadata
+ENV["VERSION"] ||= File.read(File.expand_path('../lib/rainbows/version.rb', __FILE__)).match(/.*'([^']*)'.*/).captures.first
 
 Gem::Specification.new do |s|
   s.name = %q{rainbows}
   s.version = ENV["VERSION"].dup
 
-  s.authors = ["#{name} hackers"]
+  s.authors = "Rainbows! hackers"
   s.date = Time.now.utc.strftime('%Y-%m-%d')
-  s.description = readme_description
+  s.description = "\Rainbows! is an HTTP server for sleepy Rack applications.  It is based on " +
+    "Unicorn, but designed to handle applications that expect long " +
+    "request/response times and/or slow clients."
   s.email = %q{rainbows-public@bogomips.org}
   s.executables = %w(rainbows)
-  s.extra_rdoc_files = extra_rdoc_files(manifest)
-  s.files = manifest
-  s.homepage = Wrongdoc.config[:rdoc_url]
-  s.summary = summary
-  s.rdoc_options = rdoc_options
+  s.files = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(archive|examples|t|Documentation)/}) }
+  s.summary = "Unicorn for sleepy apps and slow clients"
   s.rubyforge_project = %q{rainbows}
 
   # we want a newer Rack for a valid HeaderHash#each
