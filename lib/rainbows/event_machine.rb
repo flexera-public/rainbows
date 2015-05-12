@@ -69,6 +69,20 @@ module Rainbows::EventMachine
   # for connections and doesn't die until the parent dies (or is
   # given a INT, QUIT, or TERM signal)
   def worker_loop(worker) # :nodoc:
+    listening = false
+    listen = Proc.new do
+      unless listening
+        LISTENERS.map! do |s|
+          EM.watch(s, Rainbows::EventMachine::Server) do |c|
+            c.notify_readable = true
+          end
+        end
+        listening = true
+      end
+    end
+
+    # mark worker as ready by default
+    worker.ready = true
     init_worker_process(worker)
     server = Rainbows.server
     server.app.respond_to?(:deferred?) and
@@ -102,15 +116,20 @@ module Rainbows::EventMachine
       end
       EM.add_periodic_timer(1) do
         EM.stop if ! Rainbows.tick && conns.empty? && EM.reactor_running?
+
+        # start up listeners if delayed until worker ready
+        listen.call if worker.ready && EM.reactor_running?
       end
-      LISTENERS.map! do |s|
-        EM.watch(s, Rainbows::EventMachine::Server) do |c|
-          c.notify_readable = true
-        end
-      end
+      listen.call if worker.ready
     }
     EM.reactor_thread.join if EM.reactor_running?
   end
 end
 # :enddoc:
+
+# monkey patch worker so that can record whether ready for traffic
+class Unicorn::Worker
+  attr_accessor :ready
+end
+
 require 'rainbows/event_machine/server'
