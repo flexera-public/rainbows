@@ -44,7 +44,9 @@ module Rainbows::Response
     buf = "HTTP/1.1 #{status}\r\n" \
           "Date: #{httpdate}\r\n" \
           "Status: #{status}\r\n"
+    logger.info "====== #{headers.inspect} ======"
     headers.each do |key, value|
+      logger.info "====== key: #{key.inspect} value: #{value.inspect} ======"
       case key
       when %r{\A(?:Date\z|Connection\z)}i
         next
@@ -54,6 +56,7 @@ module Rainbows::Response
         hijack = hijack_prepare(value)
         alive = false # No persistent connections for hijacking
       else
+        logger.info "====== HERE!!! ======"
         if /\n/ =~ value
           # avoiding blank, key-only cookies with /\n+/
           buf << value.split(/\n+/).map! { |v| "#{key}: #{v}\r\n" }.join
